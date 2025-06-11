@@ -120,6 +120,28 @@
           .attr("text-anchor", "middle")
           .text(d => d.data.name);
 
+        // ノードクリックイベント
+        node.on('click', function (event, d) {
+          // 全ノードをリセット
+          svg.selectAll('.node')
+            .classed('highlight', false)
+            .classed('blur', true);
+
+          // クリックされたノードを除外（ぼやけさせない）
+          d3.select(this)
+            .classed('blur', false);
+
+          // 次のノードのみ強調（枠を赤に変更）
+          if (d.children) {
+            d.children.forEach(child => {
+              svg.selectAll('.node')
+                .filter(nodeData => nodeData === child)
+                .classed('highlight', true)
+                .classed('blur', false);
+            });
+          }
+        });
+
         // ノードのマウスオーバーイベント（ツールチップ表示）
         node.on('mouseover', function(event, d) {
           if (d.parent && d.parent.data.param && d.data.param) {
