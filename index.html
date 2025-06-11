@@ -168,8 +168,19 @@
           return 100; // デフォルト幅
         }
         const padding = 20; // 左右の余白
-        const charWidth = 8; // 1文字幅の目安（px単位）
-        return name.length * charWidth + padding;
+        const charWidth = 8; // 半角文字1文字の幅の目安（px単位）
+        const fullWidthCharWidth = 16; // 全角文字1文字の幅の目安（px単位）
+
+        // 全角文字の数をカウントする正規表現
+        const fullWidthCharCount = (name.match(/[^\x00-\x7F]/g) || []).length; // 全角文字のみ抽出
+
+        // 半角文字の長さを計算（全体文字数から全角文字数を引く）
+        const halfWidthCharCount = name.length - fullWidthCharCount;
+
+        // 各文字幅を合計して返す
+        const totalWidth = (halfWidthCharCount * charWidth) + (fullWidthCharCount * fullWidthCharWidth);
+
+        return totalWidth + padding; // フォントの余白を足して最終幅を返す
       }
     });
   </script>
