@@ -56,23 +56,35 @@
       const svg = d3.select("svg"),
             width = +svg.attr("width"),
             height = +svg.attr("height"),
-            verticalSpacing = 100,   // 各ツリー間のスペース
-            horizontalSpacing = 150; // ノード間の横幅間隔
+            verticalSpacing = 100,   // ツリー間の縦方向スペース
+            horizontalSpacing = 150; // ノード間の水平方向スペース
 
       const tooltip = d3.select('.tooltip');
-      const treeLayout = d3.tree(); // ツリーのレイアウトを再利用
-      let offsetY = 0; // 描画開始時のY座標用オフセット
+      const treeLayout = d3.tree(); // ツリーのレイアウト
 
-      data.forEach((rootData, index) => {
-        const root = d3.hierarchy(rootData, d => d.next);
+      // 初期表示用に全ツリーのリストを作成
+      const treeSelector = d3.select("body").append("div").attr("class", "tree-selector");
+      
+      data.forEach((treeData, index) => {
+        treeSelector.append("button")
+          .text(treeData.name)
+          .on("click", () => renderSingleTree(treeData));
+      });
 
-        // ツリー全体を適切な間隔で配置
-        treeLayout.nodeSize([verticalSpacing, horizontalSpacing]); // ノード間の間隔を調整
+      // 単一ツリーを描画する関数
+      function renderSingleTree(treeData) {
+        // SVGをクリアする
+        svg.selectAll("*").remove();
+
+        const root = d3.hierarchy(treeData, d => d.next);
+
+        // ツリーを中央描画するためにサイズを設定
+        treeLayout.size([height - verticalSpacing, width - horizontalSpacing]);
         treeLayout(root);
 
-        // 木を配置するグループ
+        // ツリーを描画するグループを作成（中央位置に配置）
         const group = svg.append("g")
-          .attr("transform", `translate(50, ${offsetY})`); // Y座標オフセットを更新
+          .attr("transform", `translate(${horizontalSpacing / 2}, ${verticalSpacing / 2})`);
 
         // 枝（リンク）描画
         group.selectAll(".link")
@@ -92,6 +104,47 @@
           .append("g")
           .attr("class", "node")
           .attr("transform", d => `translate(${d.y}, ${d.x})`);
+
+    // d3.json("jobs.json").then(function(data) {
+    //   const svg = d3.select("svg"),
+    //         width = +svg.attr("width"),
+    //         height = +svg.attr("height"),
+    //         verticalSpacing = 100,   // 各ツリー間のスペース
+    //         horizontalSpacing = 150; // ノード間の横幅間隔
+
+    //   const tooltip = d3.select('.tooltip');
+    //   const treeLayout = d3.tree(); // ツリーのレイアウトを再利用
+    //   let offsetY = 0; // 描画開始時のY座標用オフセット
+
+    //   data.forEach((rootData, index) => {
+    //     const root = d3.hierarchy(rootData, d => d.next);
+
+    //     // ツリー全体を適切な間隔で配置
+    //     treeLayout.nodeSize([verticalSpacing, horizontalSpacing]); // ノード間の間隔を調整
+    //     treeLayout(root);
+
+    //     // 木を配置するグループ
+    //     const group = svg.append("g")
+    //       .attr("transform", `translate(200, ${offsetY})`); // Y座標オフセットを更新
+
+    //     // 枝（リンク）描画
+    //     group.selectAll(".link")
+    //       .data(root.links())
+    //       .enter()
+    //       .append("path")
+    //       .attr("class", "link")
+    //       .attr("d", d3.linkHorizontal()
+    //         .x(d => d.y)
+    //         .y(d => d.x)
+    //       );
+
+    //     // ノード描画
+    //     const node = group.selectAll(".node")
+    //       .data(root.descendants())
+    //       .enter()
+    //       .append("g")
+    //       .attr("class", "node")
+    //       .attr("transform", d => `translate(${d.y}, ${d.x})`);
 
         // ノードの背景（幅を動的に計算）
         node.append("rect")
