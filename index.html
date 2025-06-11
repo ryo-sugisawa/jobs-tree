@@ -55,24 +55,24 @@
     d3.json("jobs.json").then(function(data) {
       const svg = d3.select("svg"),
             width = +svg.attr("width"),
-            height = +svg.attr("height");
+            height = +svg.attr("height"),
+            verticalSpacing = 100,   // 各ツリー間のスペース
+            horizontalSpacing = 150; // ノード間の横幅間隔
 
       const tooltip = d3.select('.tooltip');
-
-      const treeLayout = d3.tree(); // レイアウトオブジェクトを再利用
-
-      // 垂直方向間隔を計算する
-      const verticalSpacing = 100; // 各ツリー間のスペース
-      let offsetY = 0; // 描画開始のY座標 
+      const treeLayout = d3.tree(); // ツリーのレイアウトを再利用
+      let offsetY = 0; // 描画開始時のY座標用オフセット
 
       data.forEach((rootData, index) => {
-        const root = d3.hierarchy(rootData, d => d.next); // "next" を子として扱う
-        treeLayout.size([height / data.length - verticalSpacing, width / 2]);
+        const root = d3.hierarchy(rootData, d => d.next);
+
+        // ツリー全体を適切な間隔で配置
+        treeLayout.nodeSize([verticalSpacing, horizontalSpacing]); // ノード間の間隔を調整
         treeLayout(root);
 
-        // 木を追加するためのグループ
+        // 木を配置するグループ
         const group = svg.append("g")
-          .attr("transform", `translate(50, ${offsetY})`); // Y座標を増加させながら配置
+          .attr("transform", `translate(50, ${offsetY})`); // Y座標オフセットを更新
 
         // 枝（リンク）描画
         group.selectAll(".link")
@@ -81,8 +81,8 @@
           .append("path")
           .attr("class", "link")
           .attr("d", d3.linkHorizontal()
-            .x(d => d.y + 20)
-            .y(d => d.x + 40)
+            .x(d => d.y)
+            .y(d => d.x)
           );
 
         // ノード描画
@@ -107,6 +107,9 @@
           .attr("dy", "0.35em")
           .attr("text-anchor", "middle")
           .text(d => d.data.name);
+
+        // ツリー間の高さを計算して次に進む
+        offsetY += height / data.length;
 
         // ノードクリックイベント
         node.on('click', function (event, d) {
@@ -156,7 +159,7 @@
         });
 
         // 複数ルートツリー間の間隔を調整
-        offsetX += rootData.next ? width / data.length : width / (data.length + 1);
+        // offsetX += rootData.next ? width / data.length : width / (data.length + 1);
       });
 
       // ノードの幅を計算する関数（文字列の長さに応じて幅を設定）
