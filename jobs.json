@@ -1,21 +1,43 @@
 {
-    "name": "ソードマン（攻:5）",
-    "children": [
+    "name": "ジュニアSQL/BigQueryデベロッパー",
+    "param": {
+        "SQL": 1,
+        "クラウドインフラ": 0,
+        "BI": 0,
+        "Python": 0,
+    	"AI": 0,
+        "バックエンド": 0,
+        "自動化/シェル": 0,
+        "フロントエンド": 0,
+        "DevOps": 0
+    },
+    "next": [
       {
-        "name": "上級ソードマン（防:10）",
-        "children": [
+        "name": "SQL/BigQueryエンジニア",
+        "param": {
+            "SQL": 2,
+            "クラウドインフラ": 0,
+            "BI": 1,
+            "Python": 0,
+            "AI": 0,
+            "バックエンド": 0,
+            "自動化/シェル": 0,
+            "フロントエンド": 0,
+            "DevOps": 1
+        },
+        "next": [
           { "name": "パラディン（体:20）" }
         ]
       },
       {
         "name": "A",
-        "children": [
+        "next": [
           { "name": "C" }
         ]
       },
       { 
         "name": "B", 
-        "children": [ { "name": "D" } ] 
+        "next": [ { "name": "D" } ] 
       }
     ]
   }

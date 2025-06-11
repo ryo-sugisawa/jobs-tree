@@ -22,19 +22,34 @@
       stroke-width: 1.5px;
     }
 
+    .highlight rect {
+      stroke: red;
+      stroke-width: 3px;
+    }
+
     .blur {
       opacity: 0.4;
     }
 
-    .highlight rect {
-      stroke: red;
-      stroke-width: 3px;
+    .tooltip {
+      position: absolute;
+      text-align: left;
+      width: auto;
+      height: auto;
+      padding: 5px;
+      font: 14px sans-serif;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      pointer-events: none;
+      box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
     }
   </style>
 </head>
 <body>
   <h1>ジョブツリー</h1>
   <svg width="800" height="600"></svg>
+  <div class="tooltip" style="opacity: 0;"></div>
 
   <script>
     d3.json("jobs.json").then(function(data) {
@@ -42,8 +57,12 @@
             width = +svg.attr("width"),
             height = +svg.attr("height");
 
+      const tooltip = d3.select('.tooltip');
+
+      // ツリーレイアウト作成
       const treeLayout = d3.tree().size([height - 100, width - 200]);
-      const root = d3.hierarchy(data);
+      const root = d3.hierarchy(data, d => d.next); // "next" を子とする
+      
       treeLayout(root);
 
       // 枝（リンク）描画
@@ -56,7 +75,7 @@
           .x(d => d.y + 100)
           .y(d => d.x + 50));
 
-      // ノード（四角＋テキスト）
+      // ノード（四角＋テキスト）作成
       const node = svg.selectAll('.node')
         .data(root.descendants())
         .enter()
@@ -64,46 +83,44 @@
         .attr('class', 'node')
         .attr('transform', d => `translate(${d.y + 100},${d.x + 50})`);
 
-      node.append('rect')
-        .attr('width', 140)
-        .attr('height', 30)
-        .attr('x', -70)
-        .attr('y', -15)
+       // 四角形の背景
+       node.append('rect')
+        .attr('width', 160)
+        .attr('height', 40)
+        .attr('x', -80)
+        .attr('y', -20)
         .attr('rx', 5)
         .attr('ry', 5);
 
+      // ノードのテキスト
       node.append('text')
         .attr('dy', '0.35em')
         .attr('text-anchor', 'middle')
         .text(d => d.data.name);
 
-      // クリックイベント
-      node.on('click', function(event, d) {
-        // 全ノードをリセット
-        svg.selectAll('.node')
-          .classed('highlight', false)
-          .classed('blur', true); // ぼかしを追加
-        
-        svg.selectAll('.highlight rect').style("filter","")
-        
-        // クリックされたノードを解除
-        d3.select(this).classed('blur', false);
-        
-         //<highlight加工>
+      // マウスオーバーイベント
+      node.on('mouseover', function(event, d) {
+        if (d.parent && d.parent.data.param && d.data.param) {
+          // 親ノードとの差分を計算
+          const parentParam = d.parent.data.param;
+          const currentParam = d.data.param;
+          const diffEntries = Object.entries(currentParam)
+            .filter(([key, value]) => value - (parentParam[key] || 0) >= 1);
 
-        
-        // 次のノード（子ノード）を強調
-        if (d.children) {
-          d.children.forEach(child => {
-            svg.selectAll('.node')
-              .filter(nodeData => nodeData === child)
-              .classed('highlight', true)
-              .classed('blur', false);
-          });
+          if (diffEntries.length > 0) {
+            // ツールチップの中身を設定
+            const tooltipContent = diffEntries.map(([key, value]) => `${key}: +${value - parentParam[key]}`).join('<br>');
+            tooltip.html(tooltipContent)
+              .style('opacity', 1)
+              .style('left', (event.pageX + 10) + 'px')
+              .style('top', (event.pageY + 10) + 'px');
+          }
         }
+      });
 
-        let clickedTarget=d3.select(this)
-        
+      // マウスアウトイベント
+      node.on('mouseout', function() {
+        tooltip.style('opacity', 0);
       });
     });
   </script>
