@@ -21,6 +21,15 @@
       stroke: #000;
       stroke-width: 1.5px;
     }
+
+    .blur {
+      opacity: 0.4;
+    }
+
+    .highlight rect {
+      stroke: red;
+      stroke-width: 3px;
+    }
   </style>
 </head>
 <body>
@@ -67,6 +76,35 @@
         .attr('dy', '0.35em')
         .attr('text-anchor', 'middle')
         .text(d => d.data.name);
+
+      // クリックイベント
+      node.on('click', function(event, d) {
+        // 全ノードをリセット
+        svg.selectAll('.node')
+          .classed('highlight', false)
+          .classed('blur', true); // ぼかしを追加
+        
+        svg.selectAll('.highlight rect').style("filter","")
+        
+        // クリックされたノードを解除
+        d3.select(this).classed('blur', false);
+        
+         //<highlight加工>
+
+        
+        // 次のノード（子ノード）を強調
+        if (d.children) {
+          d.children.forEach(child => {
+            svg.selectAll('.node')
+              .filter(nodeData => nodeData === child)
+              .classed('highlight', true)
+              .classed('blur', false);
+          });
+        }
+
+        let clickedTarget=d3.select(this)
+        
+      });
     });
   </script>
 </body>
