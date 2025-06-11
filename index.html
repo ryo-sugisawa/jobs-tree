@@ -147,6 +147,10 @@
 
       // ノードの幅を計算する関数（文字列の長さに応じて幅を設定）
       function calculateNodeWidth(name) {
+        if (!d || !d.name) {
+          console.warn("Invalid node data:", d);
+          return 100; // デフォルト幅
+        }
         const padding = 20; // 左右の余白
         const charWidth = 8; // 1文字幅の目安（px単位）
         return name.length * charWidth + padding;
