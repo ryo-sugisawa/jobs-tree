@@ -48,7 +48,7 @@
 </head>
 <body>
   <h1>ジョブツリー</h1>
-  <svg width="3800" height="16000"></svg>
+  <svg width="3800" height="8000"></svg>
   <div class="tooltip" style="opacity: 0;"></div>
 
   <script>
@@ -56,8 +56,8 @@
       const svg = d3.select("svg"),
             width = +svg.attr("width"),
             height = +svg.attr("height"),
-            verticalSpacing = 100,   // ツリー間の縦方向スペース
-            horizontalSpacing = 150; // ノード間の水平方向スペース
+            verticalSpacing = 50,   // ツリー間の縦方向スペース
+            horizontalSpacing = 100; // ノード間の水平方向スペース
 
       const tooltip = d3.select('.tooltip');
       const treeLayout = d3.tree(); // ツリーのレイアウト
@@ -142,20 +142,43 @@
           }
         });
 
-        // ノードのマウスオーバーイベント（ツールチップ表示）
-        node.on('mouseover', function(event, d) {
-          if (d.parent && d.parent.data.param && d.data.param) {
-            const parentParam = d.parent.data.param;
-            const currentParam = d.data.param;
-            const diffEntries = Object.entries(currentParam)
-              .filter(([key, value]) => value - (parentParam[key] || 0) >= 1);
+        // // ノードのマウスオーバーイベント（ツールチップ表示）
+        // node.on('mouseover', function(event, d) {
+        //   if (d.parent && d.parent.data.param && d.data.param) {
+        //     const parentParam = d.parent.data.param;
+        //     const currentParam = d.data.param;
+        //     const diffEntries = Object.entries(currentParam)
+        //       .filter(([key, value]) => value - (parentParam[key] || 0) >= 1);
 
-            if (diffEntries.length > 0) {
-              const tooltipContent = diffEntries.map(([key, value]) => `${key}: +${value - parentParam[key]}`).join('<br>');
-              tooltip.html(tooltipContent)
-                .style('opacity', 1)
-                .style('left', (event.pageX + 10) + 'px')
-                .style('top', (event.pageY + 10) + 'px');
+        //     if (diffEntries.length > 0) {
+        //       const tooltipContent = diffEntries.map(([key, value]) => `${key}: +${value - parentParam[key]}`).join('<br>');
+        //       tooltip.html(tooltipContent)
+        //         .style('opacity', 1)
+        //         .style('left', (event.pageX + 20) + 'px')
+        //         .style('top', (event.pageY + 10) + 'px');
+        //     }
+        //   }
+        // });
+
+        // ノードのマウスオーバーイベント（ぼやけていないノードだけツールチップを表示）
+        node.on("mouseover", function(event, d) {
+          const currentNode = d3.select(this);
+
+          // ぼやけてない状態のノードのみツールチップを表示
+          if (!currentNode.classed("blur")) {
+            if (d.parent && d.parent.data.param && d.data.param) {
+              const parentParam = d.parent.data.param;
+              const currentParam = d.data.param;
+              const diffEntries = Object.entries(currentParam)
+                .filter(([key, value]) => value - (parentParam[key] || 0) >= 1);
+
+              if (diffEntries.length > 0) {
+                const tooltipContent = diffEntries.map(([key, value]) => `${key}: +${value - parentParam[key]}`).join('<br>');
+                tooltip.html(tooltipContent)
+                  .style('opacity', 1)
+                  .style('left', (event.pageX + 20) + 'px')
+                  .style('top', (event.pageY + 10) + 'px');
+              }
             }
           }
         });
