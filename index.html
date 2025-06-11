@@ -62,7 +62,7 @@
       // ツリーレイアウト作成
       const treeLayout = d3.tree().size([height - 100, width - 200]);
       const root = d3.hierarchy(data, d => d.next); // "next" を子とする
-      
+
       treeLayout(root);
 
       // 枝（リンク）描画
@@ -75,7 +75,7 @@
           .x(d => d.y + 100)
           .y(d => d.x + 50));
 
-      // ノード（四角＋テキスト）作成
+      // ノード作成
       const node = svg.selectAll('.node')
         .data(root.descendants())
         .enter()
@@ -83,12 +83,12 @@
         .attr('class', 'node')
         .attr('transform', d => `translate(${d.y + 100},${d.x + 50})`);
 
-       // 四角形の背景
-       node.append('rect')
-        .attr('width', 160)
-        .attr('height', 40)
-        .attr('x', -80)
+      // 四角形の背景（幅はテキスト長に応じて動的に設定）
+      node.append('rect')
+        .attr('x', d => -calculateNodeWidth(d.data.name) / 2)
         .attr('y', -20)
+        .attr('width', d => calculateNodeWidth(d.data.name))
+        .attr('height', 40)
         .attr('rx', 5)
         .attr('ry', 5);
 
@@ -98,8 +98,30 @@
         .attr('text-anchor', 'middle')
         .text(d => d.data.name);
 
-      // マウスオーバーイベント
-      node.on('mouseover', function(event, d) {
+      // ノードクリックイベント
+      node.on('click', function (event, d) {
+        // 全ノードをリセット
+        svg.selectAll('.node')
+          .classed('highlight', false)
+          .classed('blur', true);
+
+        // クリックされたノードを除外（ぼやけさせない）
+        d3.select(this)
+          .classed('blur', false);
+
+        // 次のノードのみ強調（枠を赤に変更）
+        if (d.children) {
+          d.children.forEach(child => {
+            svg.selectAll('.node')
+              .filter(nodeData => nodeData === child)
+              .classed('highlight', true)
+              .classed('blur', false);
+          });
+        }
+      });
+
+      // ノードマウスオーバーイベント（Tips表示）
+      node.on('mouseover', function (event, d) {
         if (d.parent && d.parent.data.param && d.data.param) {
           // 親ノードとの差分を計算
           const parentParam = d.parent.data.param;
@@ -118,11 +140,16 @@
         }
       });
 
-      // マウスアウトイベント
-      node.on('mouseout', function() {
+      // ノードマウスアウトイベント（Tips非表示）
+      node.on('mouseout', function () {
         tooltip.style('opacity', 0);
       });
+
+      // ノードの幅を計算する関数（文字列の長さに応じて幅を設定）
+      function calculateNodeWidth(name) {
+        const padding = 20; // 左右の余白
+        const charWidth = 8; // 1文字幅の目安（px単位）
+        return name.length * charWidth + padding;
+      }
     });
   </script>
-</body>
-</html>
