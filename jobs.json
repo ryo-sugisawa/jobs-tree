@@ -1,19 +1,22 @@
 {
-    "nodes": {
-      "ソードマン": { "attack": 10, "defense": 5 },
-      "上級ソードマン": { "attack": 15, "defense": 10 },
-      "パラディン": { "attack": 12, "defense": 20 },
-      "A": { "attack": 8, "defense": 6 },
-      "B": { "attack": 9, "defense": 5 },
-      "C": { "attack": 11, "defense": 4 },
-      "D": { "attack": 14, "defense": 7 }
-    },
-    "edges": [
-      ["ソードマン", "上級ソードマン"],
-      ["ソードマン", "A"],
-      ["ソードマン", "B"],
-      ["上級ソードマン", "パラディン"],
-      ["A", "C"],
-      ["B", "D"]
+    "name": "ソードマン（攻:5）",
+    "children": [
+      {
+        "name": "上級ソードマン（防:10）",
+        "children": [
+          { "name": "パラディン（体:20）" }
+        ]
+      },
+      {
+        "name": "A",
+        "children": [
+          { "name": "C" }
+        ]
+      },
+      { 
+        "name": "B", 
+        "children": [ { "name": "D" } ] 
+      }
     ]
   }
+  
