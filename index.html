@@ -105,6 +105,67 @@
           .attr("class", "node")
           .attr("transform", d => `translate(${d.y}, ${d.x})`);
 
+        // ノードの背景（幅を動的に計算）
+        node.append("rect")
+          .attr("x", d => -calculateNodeWidth(d.data.name) / 2)
+          .attr("y", -20)
+          .attr("width", d => calculateNodeWidth(d.data.name))
+          .attr("height", 40)
+          .attr("rx", 5)
+          .attr("ry", 5);
+
+        // ノードのテキスト
+        node.append("text")
+          .attr("dy", "0.35em")
+          .attr("text-anchor", "middle")
+          .text(d => d.data.name);
+
+        // ノードのマウスオーバーイベント（ツールチップ表示）
+        node.on('mouseover', function(event, d) {
+          if (d.parent && d.parent.data.param && d.data.param) {
+            const parentParam = d.parent.data.param;
+            const currentParam = d.data.param;
+            const diffEntries = Object.entries(currentParam)
+              .filter(([key, value]) => value - (parentParam[key] || 0) >= 1);
+
+            if (diffEntries.length > 0) {
+              const tooltipContent = diffEntries.map(([key, value]) => `${key}: +${value - parentParam[key]}`).join('<br>');
+              tooltip.html(tooltipContent)
+                .style('opacity', 1)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY + 10) + 'px');
+            }
+          }
+        });
+
+        // ノードのマウスアウトイベント（ツールチップ非表示）
+        node.on('mouseout', function() {
+          tooltip.style('opacity', 0);
+        });
+      }
+
+      // ノードの幅を計算する関数（全角文字の幅を特別に調整）
+      function calculateNodeWidth(name) {
+        if (!name) {
+          return 100; // デフォルト幅
+        }
+        
+        const padding = 20; // 左右の余白
+        const charWidth = 8; // 半角文字1文字の幅の目安（px単位）
+        const fullWidthCharWidth = 16; // 全角文字1文字の幅の目安（px単位）
+
+        // 全角文字の数をカウントする正規表現
+        const fullWidthCharCount = (name.match(/[^\x00-\x7F]/g) || []).length; // 全角文字のみ抽出
+
+        // 半角文字の長さを計算（全体文字数から全角文字数を引く）
+        const halfWidthCharCount = name.length - fullWidthCharCount;
+
+        // 各文字幅を合計して返す
+        const totalWidth = (halfWidthCharCount * charWidth) + (fullWidthCharCount * fullWidthCharWidth);
+
+        return totalWidth + padding; // フォントの余白を足して最終幅を返す
+      }
+    });
     // d3.json("jobs.json").then(function(data) {
     //   const svg = d3.select("svg"),
     //         width = +svg.attr("width"),
@@ -146,94 +207,94 @@
     //       .attr("class", "node")
     //       .attr("transform", d => `translate(${d.y}, ${d.x})`);
 
-        // ノードの背景（幅を動的に計算）
-        node.append("rect")
-          .attr("x", d => -calculateNodeWidth(d.data.name) / 2)
-          .attr("y", -20)
-          .attr("width", d => calculateNodeWidth(d.data.name))
-          .attr("height", 40)
-          .attr("rx", 5)
-          .attr("ry", 5);
+    //     // ノードの背景（幅を動的に計算）
+    //     node.append("rect")
+    //       .attr("x", d => -calculateNodeWidth(d.data.name) / 2)
+    //       .attr("y", -20)
+    //       .attr("width", d => calculateNodeWidth(d.data.name))
+    //       .attr("height", 40)
+    //       .attr("rx", 5)
+    //       .attr("ry", 5);
 
-        // ノードのテキスト
-        node.append("text")
-          .attr("dy", "0.35em")
-          .attr("text-anchor", "middle")
-          .text(d => d.data.name);
+    //     // ノードのテキスト
+    //     node.append("text")
+    //       .attr("dy", "0.35em")
+    //       .attr("text-anchor", "middle")
+    //       .text(d => d.data.name);
 
-        // ツリー間の高さを計算して次に進む
-        offsetY += height / data.length;
+    //     // ツリー間の高さを計算して次に進む
+    //     offsetY += height / data.length;
 
-        // ノードクリックイベント
-        node.on('click', function (event, d) {
-          // 全ノードをリセット
-          svg.selectAll('.node')
-            .classed('highlight', false)
-            .classed('blur', true);
+    //     // ノードクリックイベント
+    //     node.on('click', function (event, d) {
+    //       // 全ノードをリセット
+    //       svg.selectAll('.node')
+    //         .classed('highlight', false)
+    //         .classed('blur', true);
 
-          // クリックされたノードを除外（ぼやけさせない）
-          d3.select(this)
-            .classed('blur', false);
+    //       // クリックされたノードを除外（ぼやけさせない）
+    //       d3.select(this)
+    //         .classed('blur', false);
 
-          // 次のノードのみ強調（枠を赤に変更）
-          if (d.children) {
-            d.children.forEach(child => {
-              svg.selectAll('.node')
-                .filter(nodeData => nodeData === child)
-                .classed('highlight', true)
-                .classed('blur', false);
-            });
-          }
-        });
+    //       // 次のノードのみ強調（枠を赤に変更）
+    //       if (d.children) {
+    //         d.children.forEach(child => {
+    //           svg.selectAll('.node')
+    //             .filter(nodeData => nodeData === child)
+    //             .classed('highlight', true)
+    //             .classed('blur', false);
+    //         });
+    //       }
+    //     });
 
-        // ノードマウスオーバーイベント（Tips表示）
-        node.on('mouseover', function (event, d) {
-          if (d.parent && d.parent.data.param && d.data.param) {
-            // 親ノードとの差分を計算
-            const parentParam = d.parent.data.param;
-            const currentParam = d.data.param;
-            const diffEntries = Object.entries(currentParam)
-              .filter(([key, value]) => value - (parentParam[key] || 0) >= 1);
+    //     // ノードマウスオーバーイベント（Tips表示）
+    //     node.on('mouseover', function (event, d) {
+    //       if (d.parent && d.parent.data.param && d.data.param) {
+    //         // 親ノードとの差分を計算
+    //         const parentParam = d.parent.data.param;
+    //         const currentParam = d.data.param;
+    //         const diffEntries = Object.entries(currentParam)
+    //           .filter(([key, value]) => value - (parentParam[key] || 0) >= 1);
 
-            if (diffEntries.length > 0) {
-              // ツールチップの中身を設定
-              const tooltipContent = diffEntries.map(([key, value]) => `${key}: +${value - parentParam[key]}`).join('<br>');
-              tooltip.html(tooltipContent)
-                .style('opacity', 1)
-                .style('left', (event.pageX + 10) + 'px')
-                .style('top', (event.pageY + 10) + 'px');
-            }
-          }
-        });
+    //         if (diffEntries.length > 0) {
+    //           // ツールチップの中身を設定
+    //           const tooltipContent = diffEntries.map(([key, value]) => `${key}: +${value - parentParam[key]}`).join('<br>');
+    //           tooltip.html(tooltipContent)
+    //             .style('opacity', 1)
+    //             .style('left', (event.pageX + 10) + 'px')
+    //             .style('top', (event.pageY + 10) + 'px');
+    //         }
+    //       }
+    //     });
 
-        // ノードマウスアウトイベント（Tips非表示）
-        node.on('mouseout', function () {
-          tooltip.style('opacity', 0);
-        });
+    //     // ノードマウスアウトイベント（Tips非表示）
+    //     node.on('mouseout', function () {
+    //       tooltip.style('opacity', 0);
+    //     });
 
-        // 複数ルートツリー間の間隔を調整
-        // offsetX += rootData.next ? width / data.length : width / (data.length + 1);
-      });
+    //     // 複数ルートツリー間の間隔を調整
+    //     // offsetX += rootData.next ? width / data.length : width / (data.length + 1);
+    //   });
 
-      // ノードの幅を計算する関数（文字列の長さに応じて幅を設定）
-      function calculateNodeWidth(name) {
-        if (!name) {
-          return 100; // デフォルト幅
-        }
-        const padding = 20; // 左右の余白
-        const charWidth = 8; // 半角文字1文字の幅の目安（px単位）
-        const fullWidthCharWidth = 16; // 全角文字1文字の幅の目安（px単位）
+    //   // ノードの幅を計算する関数（文字列の長さに応じて幅を設定）
+    //   function calculateNodeWidth(name) {
+    //     if (!name) {
+    //       return 100; // デフォルト幅
+    //     }
+    //     const padding = 20; // 左右の余白
+    //     const charWidth = 8; // 半角文字1文字の幅の目安（px単位）
+    //     const fullWidthCharWidth = 16; // 全角文字1文字の幅の目安（px単位）
 
-        // 全角文字の数をカウントする正規表現
-        const fullWidthCharCount = (name.match(/[^\x00-\x7F]/g) || []).length; // 全角文字のみ抽出
+    //     // 全角文字の数をカウントする正規表現
+    //     const fullWidthCharCount = (name.match(/[^\x00-\x7F]/g) || []).length; // 全角文字のみ抽出
 
-        // 半角文字の長さを計算（全体文字数から全角文字数を引く）
-        const halfWidthCharCount = name.length - fullWidthCharCount;
+    //     // 半角文字の長さを計算（全体文字数から全角文字数を引く）
+    //     const halfWidthCharCount = name.length - fullWidthCharCount;
 
-        // 各文字幅を合計して返す
-        const totalWidth = (halfWidthCharCount * charWidth) + (fullWidthCharCount * fullWidthCharWidth);
+    //     // 各文字幅を合計して返す
+    //     const totalWidth = (halfWidthCharCount * charWidth) + (fullWidthCharCount * fullWidthCharWidth);
 
-        return totalWidth + padding; // フォントの余白を足して最終幅を返す
-      }
-    });
+    //     return totalWidth + padding; // フォントの余白を足して最終幅を返す
+    //   }
+    // });
   </script>
